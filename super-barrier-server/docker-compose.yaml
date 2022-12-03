@@ -1,0 +1,27 @@
+version: "3"
+services:
+  squid:
+    # Squid 5.2 on Ubuntu 22.04 LTS	
+    # image: ubuntu/squid:5.2-22.04_beta
+    build: ./squid
+    volumes:
+      - ./squid/squid.conf:/etc/squid/squid.conf
+    ports:
+      - "3128:3128"
+      - "3129:3129"
+  privoxy:
+    build: ./privoxy
+    volumes:
+      - ./privoxy/config:/etc/privoxy/config
+      - ./privoxy/user.action:/etc/privoxy/user.action
+      - ./privoxy/user.filter:/etc/privoxy/user.filter
+    ports:
+      - "8118:8118"
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.44.0.0/12
+    

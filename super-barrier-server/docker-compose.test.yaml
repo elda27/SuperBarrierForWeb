@@ -1,0 +1,10 @@
+services:
+  squid:
+    volumes:
+      - ./squid/certs/server.crt:/etc/squid/certs/server.crt
+      - ./squid/certs/server.key:/etc/squid/certs/server.key
+      - ./squid/certs/server_dhparam.pem:/etc/squid/certs/server_dhparam.pem
+  privoxy:
+    volumes:
+      - ./privoxy/certs/cacert.crt:/opt/privoxy/etc/certs/server.crt
+      - ./privoxy/certs/cakey.pem:/opt/privoxy/etc/certs/server.pem
