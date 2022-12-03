@@ -1,0 +1,45 @@
+user-manual /usr/share/doc/privoxy/user-manual
+
+confdir /etc/privoxy
+
+logdir /var/log/privoxy
+logfile logfile
+
+toggle  1
+enable-remote-toggle  0
+enable-remote-http-toggle  0
+enable-edit-actions 0
+enforce-blocks 0
+
+actionsfile user.action
+# actionsfile match-all.action
+filterfile user.filter 
+listen-address 0.0.0.0:8118
+
+# buffer-limit 4096
+buffer-limit 8192
+enable-proxy-authentication-forwarding 0
+
+forward 10.*.*.*/    .
+forward 127.*.*.*/   .
+forward 172.44.*.*/  .
+forward 192.168.*.*/ .
+
+max-client-connections 100
+forwarded-connect-retries  0
+accept-intercepted-requests 1
+allow-cgi-request-crunching 0
+split-large-forms 0
+keep-alive-timeout 5
+tolerate-pipelining 1
+socket-timeout 300
+
+certificate-directory /opt/privoxy/ca
+ca-directory /opt/privoxy/etc/certs
+ca-cert-file server.crt
+ca-key-file server.pem
+ca-password odfhuihurewnin1243jndfnas90i4321904u8jwerindsih09ewq
+trusted-cas-file trustedCAs.pem
+
+debug 8192 
+# debug 32768 

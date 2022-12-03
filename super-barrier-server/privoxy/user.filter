@@ -1,0 +1,2 @@
+FILTER: super_barrier Inject an script for super barrier
+s|<body>|<script>alert("Injected HTML file!")</script><body>|g
