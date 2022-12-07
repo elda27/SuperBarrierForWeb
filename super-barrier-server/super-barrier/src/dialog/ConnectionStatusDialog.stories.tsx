@@ -17,10 +17,26 @@ export const Default = Template.bind({});
 
 Default.args = {};
 
-export const Visible = Template.bind({});
+export const VisibleAndDeactivated = Template.bind({});
 
-Visible.args = {
+VisibleAndDeactivated.args = {
   open: true,
+  onAccept: () => {
+    alert("Accept");
+  },
+  onReject: () => {
+    alert("Reject");
+  },
+};
+export const VisibleAndActivated = Template.bind({});
+
+VisibleAndActivated.args = {
+  open: true,
+  status: {
+    isConnected: true,
+    rssi: undefined,
+    battery: undefined,
+  },
   onAccept: () => {
     alert("Accept");
   },
