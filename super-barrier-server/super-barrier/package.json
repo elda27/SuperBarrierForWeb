@@ -10,7 +10,9 @@
     "build:debug": "set NODE_ENV=development && node ./build.js",
     "build:release": "set NODE_ENV=production && node ./build.js",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook",
+    "test": "jest",
+    "test-coverage": "jest --coverage"
   },
   "devDependencies": {
     "@babel/core": "^7.18.10",
