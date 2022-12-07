@@ -1,9 +1,7 @@
 import * as React from "react";
-import Box from "@mui/material/Box";
 import Backdrop from "@mui/material/Backdrop";
 import SpeedDial from "@mui/material/SpeedDial";
 import Fade from "@mui/material/Fade";
-import SpeedDialAction from "@mui/material/SpeedDialAction";
 import IconButton from "@mui/material/IconButton";
 
 import FlameIcon from "./components/FlameIcon";
