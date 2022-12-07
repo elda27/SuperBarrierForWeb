@@ -10,7 +10,7 @@ import {
 // const UUID_GNSS_SERVICE: number = parseInt("0x1136", 16);
 // const UUID_IMU_SERVICE: string = "761a5f72-5ccf-11ed-9b6a-0242ac120002";
 
-export class WebBlueetoothSuperBarrier implements SuperBarrier {
+export class BrowserSuperBarrier implements SuperBarrier {
   device?: BluetoothDevice;
   state?: SuperBarrierState;
   sleptManager: SuperBarrierSleptManager;
@@ -49,6 +49,7 @@ export class WebBlueetoothSuperBarrier implements SuperBarrier {
         },
       };
     }
+
     // Get location service
     const locationServiceResult = new Promise<[boolean, Location]>(
       (resolver) => {
@@ -60,7 +61,8 @@ export class WebBlueetoothSuperBarrier implements SuperBarrier {
           };
           this.sleptManager.update(
             position.coords.latitude,
-            position.coords.longitude
+            position.coords.longitude,
+            imuStatus?.acceleration ?? { x: 0.0, y: 0.0, z: 0.0 }
           );
           resolver([this.sleptManager.isSlept(), location]);
         });
