@@ -1,6 +1,6 @@
 import { Vector3 } from "./base";
 import { RingBuffer } from "../misc";
-import { createGoogleMapApiLoader } from "./_loader";
+import { isNearBySacret } from "../application";
 
 export const BT_ACC_SERVICE_UUID = "b1ea00ed-3b42-4f3e-8aee-f772a3b5d726";
 export const BT_ACC_X_CHARACTERISTIC_UUID =
@@ -16,26 +16,16 @@ export const BT_ACC_Z_CHARACTERISTIC_UUID =
 export class SuperBarrierSleptManager {
   private slept: boolean;
   private lastUpdated: Date;
-  private placeService: google.maps.places.PlacesService | null;
   private accelerationBuffer: RingBuffer<Vector3>;
-  private updateFrequencyMs: number = 1 * 60 * 1000;
+  private updateFrequencyMs: number;
+  private searchingRadius: number;
 
-  constructor() {
+  constructor(searchingRadius = 20, updateFrequencyMs = 1 * 60 * 1000) {
     this.slept = false;
     this.lastUpdated = new Date();
-    this.placeService = null;
     this.accelerationBuffer = new RingBuffer(1000);
-
-    // Init google.map api
-    createGoogleMapApiLoader()
-      .load()
-      .then((google) => {
-        const map = new google.maps.Map(
-          // document.getElementById("map") as HTMLElement
-          document.createElement("div")
-        );
-        this.placeService = new google.maps.places.PlacesService(map);
-      });
+    this.updateFrequencyMs = updateFrequencyMs;
+    this.searchingRadius = searchingRadius;
   }
 
   /**
@@ -47,7 +37,7 @@ export class SuperBarrierSleptManager {
   }
 
   /**
-   * Check device is slept or not.
+   * Check whether the device is slept or not.
    * @returns If true, the device is sleeping.
    */
   isSlept(): boolean {
@@ -64,6 +54,7 @@ export class SuperBarrierSleptManager {
     const [accSum, accSquareSum] = this.accelerationBuffer.reduce<
       [Vector3, Vector3]
     >(
+      // Calculate statistical metrics.
       (cur, totals) => {
         const [total, squaredTotal] = totals;
 
@@ -100,9 +91,14 @@ export class SuperBarrierSleptManager {
     return anomalousX > 6.64 || anomalousY > 6.64 || anomalousZ > 6.64;
   }
 
-  isElaspedToLastUpdate(now: Date): boolean {
+  /**
+   * Check whether the time is elapsed to last update.
+   * @param now Current time.
+   * @returns If true, elasped to last update.
+   */
+  isElaspedFromLastUpdated(now: Date = new Date()): boolean {
     const elaspedMs = now.getTime() - this.lastUpdated.getTime();
-    return elaspedMs < this.updateFrequencyMs;
+    return elaspedMs > this.updateFrequencyMs;
   }
 
   /**
@@ -115,37 +111,24 @@ export class SuperBarrierSleptManager {
     longitude: number,
     acceleration: Vector3
   ): Promise<void> {
-    // Check hitting device.
+    // Check whether hitting device.
     if (this.checkHitting(acceleration)) {
       this.slept = false;
       return;
     }
 
-    // Check device location using Google.Map API.
+    // Check whether device location using Google.Map API.
     const now = new Date();
-    if (this.isElaspedToLastUpdate(now)) {
+    if (!this.isElaspedFromLastUpdated(now)) {
       //  Check every 1 minutes
       return;
     }
 
+    // Check whether the device location near by sacred place.
     this.lastUpdated = now;
-    return new Promise<void>((resolve) => {
-      // Search nearest sacret place asynchronously.
-      this.placeService &&
-        this.placeService.nearbySearch(
-          {
-            location: new google.maps.LatLng(latitude, longitude),
-            radius: 20,
-            type: "place_of_worship",
-          },
-          (results) => {
-            // Finished to search sacred locations.
-            if (!!results && results.length > 0) {
-              this.slept = true;
-            }
-            resolve();
-          }
-        );
-    });
+    if (await isNearBySacret(latitude, longitude, this.searchingRadius)) {
+      this.slept = true;
+      return;
+    }
   }
 }

@@ -1,38 +1,15 @@
 import { jest, test, expect } from "@jest/globals";
-import * as google_mock from "@googlemaps/jest-mocks";
+import * as application from "../application";
 import { SuperBarrierSleptManager } from "./common";
 
-import { JSDOM } from "jsdom";
-const dom = new JSDOM();
-global.document = dom.window.document;
-
-// class DummyApiLoader {
-//   load(): Promise<unknown> {
-//     return new Promise((resolve) => resolve({ maps: google_mock }));
-//   }
-// }
-
-// jest.mock("./_loader", () => {
-//   const originalModule = jest.requireActual(
-//     "./_loader"
-//   ) as typeof import("./_loader");
-//   return {
-//     __esModule: true,
-//     ...originalModule,
-//     createGoogleMapApiLoader: () => new DummyApiLoader(),
-//   };
-// });
-
-beforeAll(() => {
-  google_mock.initialize();
-});
-
-beforeEach(() => {
-  google_mock.mockInstances.clearAll();
-});
+jest.useFakeTimers();
 
 test("SuperBarrierSleptManager", async () => {
+  const mockIsNearBySacret = jest.spyOn(application, "isNearBySacret");
+  mockIsNearBySacret.mockResolvedValue(false);
   const manager = new SuperBarrierSleptManager();
+
+  expect(manager.isElaspedFromLastUpdated()).toBe(false);
 
   // Fill buffer
   for (let i = 0; i < 1000; i++) {
@@ -43,12 +20,13 @@ test("SuperBarrierSleptManager", async () => {
   manager.setUpdateFrequency(10);
   jest.advanceTimersByTime(50);
 
-  expect(manager.isElaspedToLastUpdate(new Date())).toBe(true);
+  expect(manager.isElaspedFromLastUpdated()).toBe(true);
 
   // Check initial state
   expect(manager.isSlept()).toBe(false);
 
   // Check slept state
+  mockIsNearBySacret.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
   await manager.update(136.433329, 34.271561, { x: 0, y: 0, z: 0 }); // Ise Grand shline
   expect(manager.isSlept()).toBe(true);
 

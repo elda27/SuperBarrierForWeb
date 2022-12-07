@@ -1,0 +1,1 @@
+export { isNearBySacret } from "./location";
