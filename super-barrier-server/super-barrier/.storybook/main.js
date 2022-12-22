@@ -7,7 +7,9 @@ module.exports = {
   ],
   features: {
     emotionAlias: false,
+    interactionsDebugger: true,
   },
+  staticDirs: ["./test-assets"],
   framework: "@storybook/react",
   webpackFinal: async (config, { configType }) => {
     config.mode = "development";
