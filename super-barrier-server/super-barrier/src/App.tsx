@@ -1,32 +1,91 @@
 import * as React from "react";
-import Sensors from "@mui/icons-material/Sensors";
-import SuperBarrierButton from "./SuperBarrierButton";
-import SpeedDialAction from "@mui/material/SpeedDialAction";
+import { DeviceStatus } from "./interfaces";
+import { AppButton } from "./ui/AppButton";
+import { WarningAlart } from "./dialog/WarningAlart";
+import * as amazon from "./barrier/amazon";
+import { BrowserSuperBarrier } from "./hw/browser";
+import { useInterval } from "usehooks-ts";
+import _ from "lodash";
 
-export const App: React.FC = () => {
-  const actions = [
-    {
-      icon: <Typography>1</Typography>,
-      name: "Copy",
-      onClick: () => alert("hoge"),
-    },
-    { icon: <Typography>2</Typography>, name: "Save", onClick: undefined },
-    { icon: <Typography>3</Typography>, name: "Print", onClick: undefined },
-    { icon: <Typography>4</Typography>, name: "Share", onClick: undefined },
-  ];
+const WarningAcceptedKey = "WarningAccepted";
+
+export interface AppProps {
+  document: Document;
+  url?: string;
+}
+
+export const App: React.FC<AppProps> = ({
+  document = window.document,
+  url = undefined,
+}) => {
+  const [displayWarning, setDisplayWarning] = React.useState<boolean>(true);
+  const [deviceStatus, setDeviceStatus] = React.useState<DeviceStatus>({
+    isConnected: false,
+  });
+  const [originalDocument, setOriginalDocument] =
+    React.useState<Document | null>(null);
+  const [barrier, setBarrier] = React.useState<BrowserSuperBarrier | null>(
+    null
+  );
+
+  // whether the warning has been accepted or not
+  React.useEffect(() => {
+    const value = Boolean(localStorage.getItem("warningAccepted"));
+    if (!value) {
+      localStorage.setItem(WarningAcceptedKey, "false");
+    } else {
+      setDisplayWarning(false);
+    }
+  }, []);
+
+  // Connecting device
+  const initialize = async () => {
+    // Init barrier
+    const barrier = new BrowserSuperBarrier();
+    if (!(await barrier.connect())) {
+      console.error("Failed to initialize barrier");
+      return;
+    }
+
+    setBarrier(barrier);
+  };
+
+  // Update every 200ms
+  useInterval(() => {
+    if (!barrier) {
+      return;
+    }
+    barrier.update();
+    setDeviceStatus({
+      isConnected: barrier.isConnected(),
+      isSlept: barrier.getState().isSlept,
+    });
+  }, 200);
+
+  // Filtering page
+  React.useLayoutEffect(() => {
+    if (!originalDocument) {
+      setOriginalDocument(_.cloneDeep(document));
+    }
+    if (deviceStatus && deviceStatus.isConnected && !deviceStatus.isSlept) {
+      amazon.filterAmazon(document, new URL(url || document.URL));
+    }
+  }, [deviceStatus.isConnected, deviceStatus?.isSlept]);
+
   return (
     <div>
-      <SuperBarrierButton>
-        {actions.map((action) => (
-          <SpeedDialAction
-            key={action.name}
-            icon={action.icon}
-            tooltipTitle={action.name}
-            tooltipOpen
-            onClick={() => action.onClick && action.onClick()}
-          />
-        ))}
-      </SuperBarrierButton>
+      <AppButton deviceStatus={deviceStatus} />
+      <WarningAlart
+        open={displayWarning}
+        onAccept={async () => {
+          setDisplayWarning(false);
+          localStorage.setItem(WarningAcceptedKey, "true");
+          await initialize();
+        }}
+        onReject={() => setDisplayWarning(true)}
+      />
     </div>
   );
 };
+
+export default App;
