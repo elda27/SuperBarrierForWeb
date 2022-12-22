@@ -5,6 +5,7 @@ build({
   target: "es2015",
   platform: "browser",
   entryPoints: ["src/index.tsx"],
+  loader: { ".svg": "text", ".html": "text" },
   outdir: "dist",
   bundle: true,
   minify: !process.env.NODE_ENV,
