@@ -7,16 +7,16 @@ import ListItemText from "@mui/material/ListItemText";
 import DialogContent from "@mui/material/DialogContent";
 import { DeviceStatus } from "interfaces";
 
-export interface WarningAlartProps {
+export interface ConnectionStatusDialogProps {
   open?: boolean;
   status?: DeviceStatus;
-  onAccept?: () => void;
-  onReject?: () => void;
+  onClose?: () => void;
 }
 
-export const ConnectionStatusDialog: React.FC<WarningAlartProps> = ({
+export const ConnectionStatusDialog: React.FC<ConnectionStatusDialogProps> = ({
   open = false,
   status = undefined,
+  onClose = undefined,
 }) => {
   let body: React.ReactNode;
   if (status && status.isConnected) {
@@ -44,7 +44,7 @@ export const ConnectionStatusDialog: React.FC<WarningAlartProps> = ({
     );
   }
   return (
-    <Dialog open={open}>
+    <Dialog open={open} onClose={onClose}>
       {/* <DialogTitle>Status</DialogTitle> */}
       <DialogContent>
         <List sx={{ width: "100%", minWidth: 360 }}>{body}</List>
