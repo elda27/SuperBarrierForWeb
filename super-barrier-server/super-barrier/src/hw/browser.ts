@@ -113,11 +113,11 @@ export class BrowserSuperBarrier implements SuperBarrier {
   async _negoatiateConnectionBluetooth(): Promise<boolean> {
     // Ask user to allow the bluetooth permission.
     const device = await navigator.bluetooth.requestDevice({
-      filters: [{ services: [] }],
+      filters: [{ name: "super-barrier" }, { services: [BT_ACC_SERVICE_UUID] }],
     });
     if (!device) {
       console.error(
-        "Failed to connect a devicew. " +
+        "Failed to connect a devices. " +
           "please check a permission about bluetooth or your device."
       );
       return false;
@@ -129,6 +129,8 @@ export class BrowserSuperBarrier implements SuperBarrier {
       console.error(`Invalid device: ${device.name} (${device.id}).`);
       return false;
     }
+
+    this.device = device;
 
     return gattServer.connected; // If connected return true.
   }
